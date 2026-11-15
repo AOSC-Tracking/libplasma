@@ -8,6 +8,7 @@
 */
 
 #include "dialog.h"
+#include "../declarativeimports/core/config-x11.h"
 #include "appletquickitem.h"
 #include "configview.h"
 #include "containmentview.h"
