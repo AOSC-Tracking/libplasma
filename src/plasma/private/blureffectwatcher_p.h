@@ -10,11 +10,20 @@
 #include <QGuiApplication>
 #include <QObject>
 
+#if HAVE_X11
+#include <QAbstractNativeEventFilter>
+#include <xcb/xcb.h>
+#endif
+
 namespace Plasma
 {
 class BackgroundEffectManager;
 
 class BlurEffectWatcher : public QObject
+#if HAVE_X11
+    ,
+                          public QAbstractNativeEventFilter
+#endif
 {
     Q_OBJECT
 
@@ -24,10 +33,19 @@ public:
     bool isEffectActive() const;
 
 protected:
+#if HAVE_X11
+    bool nativeEventFilter(const QByteArray &eventType, void *message, qintptr *) override;
+#endif
+
 Q_SIGNALS:
     void effectChanged(bool on);
 
 private:
+#if HAVE_X11
+    bool fetchEffectActive() const;
+    xcb_atom_t m_property;
+    QNativeInterface::QX11Application *m_x11Interface = nullptr;
+#endif
     std::unique_ptr<BackgroundEffectManager> m_backgroundEffectManager;
     bool m_effectActive = false;
 };

@@ -1,3 +1,4 @@
+#cmakedefine01 HAVE_X11
 #cmakedefine01 ENABLE_ACTIVITIES
 #cmakedefine01 HAVE_X11
 #cmakedefine01 HAVE_GLX

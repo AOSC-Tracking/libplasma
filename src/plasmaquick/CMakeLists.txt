@@ -128,6 +128,15 @@ target_link_libraries(PlasmaQuick
 
 )
 
+if(HAVE_X11)
+    target_link_libraries(PlasmaQuick
+        PRIVATE
+            ${X11_LIBRARIES}
+            XCB::XCB
+            Qt6::GuiPrivate
+    )
+endif()
+
 ecm_add_qml_module(plasmaconfigplugin
     URI "org.kde.plasma.configuration"
     VERSION 2.0

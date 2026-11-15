@@ -21,6 +21,7 @@ private Q_SLOTS:
     void testThemeConfig_data();
     void testThemeConfig();
     void testColors();
+    void testCompositingChange();
 
 private:
     Plasma::Theme *m_theme;

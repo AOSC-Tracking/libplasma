@@ -74,6 +74,25 @@ if(ENABLE_ACTIVITIES)
     find_package(PlasmaActivities ${PROJECT_DEP_VERSION} REQUIRED)
 endif()
 
+option(WITHOUT_X11 "Build without X11 support (skips finding X11)." OFF)
+if(NOT WITHOUT_X11)
+    find_package(X11 MODULE)
+    set_package_properties(X11 PROPERTIES DESCRIPTION "X11 libraries"
+                        URL "https://www.x.org/"
+                        TYPE OPTIONAL
+                        )
+    find_package(XCB MODULE COMPONENTS XCB COMPOSITE DAMAGE XFIXES RENDER)
+    set_package_properties(XCB PROPERTIES DESCRIPTION "X protocol C-language Binding"
+                        URL "https://xcb.freedesktop.org/"
+                        TYPE OPTIONAL
+                        )
+    if(X11_FOUND AND XCB_XCB_FOUND)
+        set(HAVE_X11 1)
+    else()
+        set(HAVE_X11 0)
+    endif()
+endif()
+
 find_package(OpenGL)
 set_package_properties(OpenGL PROPERTIES DESCRIPTION "The OpenGL libraries"
                        URL "https://www.opengl.org/"

@@ -17,6 +17,7 @@
 #include <KSharedConfig>
 #include <KWindowEffects>
 #include <KWindowSystem>
+#include <KX11Extras>
 
 namespace Plasma
 {
@@ -76,6 +77,7 @@ ThemePrivate::ThemePrivate(QObject *parent)
     , headerColorScheme(QPalette::Active, KColorScheme::Header, KSharedConfigPtr(nullptr))
     , tooltipColorScheme(QPalette::Active, KColorScheme::Tooltip, KSharedConfigPtr(nullptr))
     , defaultWallpaperTheme(QStringLiteral(DEFAULT_WALLPAPER_THEME))
+    , compositingActive(true)
     , backgroundContrastActive(KWindowEffects::isEffectAvailable(KWindowEffects::BackgroundContrast))
     , isDefault(true)
     , useGlobal(true)
@@ -90,10 +92,16 @@ ThemePrivate::ThemePrivate(QObject *parent)
     , apiMinor(0)
     , apiRevision(0)
 {
+    if (KWindowSystem::isPlatformX11()) {
+        compositingActive = KX11Extras::self()->compositingActive();
+    }
+
     kSvgImageSet = std::unique_ptr<KSvg::ImageSet>(new KSvg::ImageSet);
     kSvgImageSet->setBasePath(QStringLiteral(PLASMA_RELATIVE_DATA_INSTALL_DIR "/desktoptheme/"));
 
-    // Event compress updateKSvgSelectors
+    // Event compress updateKSvgSelectors, because when compositing changes,
+    // compositingactive and effect available will both happen in short succession
+    // in a not really deterministic order
     selectorsUpdateTimer = new QTimer(this);
     selectorsUpdateTimer->setSingleShot(true);
     selectorsUpdateTimer->setInterval(600);
@@ -123,6 +131,9 @@ ThemePrivate::ThemePrivate(QObject *parent)
         settingsChanged(true);
     });
 
+    if (KWindowSystem::isPlatformX11()) {
+        connect(KX11Extras::self(), &KX11Extras::compositingChanged, selectorsUpdateTimer, qOverload<>(&QTimer::start));
+    }
     updateKSvgSelectors();
 }
 
@@ -153,13 +164,26 @@ KConfigGroup &ThemePrivate::config()
 
 void ThemePrivate::updateKSvgSelectors()
 {
+#if HAVE_X11
+    if (KWindowSystem::isPlatformX11()) {
+        compositingActive = KX11Extras::compositingActive();
+    } else {
+        compositingActive = true;
+    }
+#else
+    compositingActive = true;
+#endif
     backgroundContrastActive = s_blurEffectWatcher->isEffectActive();
 
+    if (compositingActive) {
         if (backgroundContrastActive) {
             kSvgImageSet->setSelectors({QStringLiteral("translucent")});
         } else {
             kSvgImageSet->setSelectors({});
         }
+    } else {
+        kSvgImageSet->setSelectors({QStringLiteral("opaque")});
+    }
 }
 
 void ThemePrivate::colorsChanged()

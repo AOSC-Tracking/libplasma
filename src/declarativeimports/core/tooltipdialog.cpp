@@ -25,9 +25,13 @@ ToolTipDialog::ToolTipDialog()
     , m_owner(nullptr)
 {
     Qt::WindowFlags flags = Qt::WindowDoesNotAcceptFocus | Qt::WindowStaysOnTopHint;
-    flags |= Qt::FramelessWindowHint;
-    PlasmaShellWaylandIntegration::get(this)->setRole(QtWayland::org_kde_plasma_surface::role_tooltip);
-    PlasmaShellWaylandIntegration::get(this)->setTakesFocus(false);
+    if (KWindowSystem::isPlatformX11()) {
+        flags |= Qt::ToolTip | Qt::BypassWindowManagerHint;
+    } else {
+        flags |= Qt::FramelessWindowHint;
+        PlasmaShellWaylandIntegration::get(this)->setRole(QtWayland::org_kde_plasma_surface::role_tooltip);
+        PlasmaShellWaylandIntegration::get(this)->setTakesFocus(false);
+    }
     setFlags(flags);
 
     m_hideTimer.setSingleShot(true);
